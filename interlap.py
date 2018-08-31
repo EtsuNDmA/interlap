@@ -150,14 +150,23 @@ class InterLap(object):
         """Return number of intervals."""
         return len(self._iset)
 
-    def find(self, other):
+    def find(self, other, include_left=True, include_right=True):
         """Return an interable of elements that overlap other in the tree."""
         iset = self._iset
         l = binsearch_left_start(iset, other[0] - self._maxlen, 0, len(iset))
         r = binsearch_right_end(iset, other[1], 0, len(iset))
         iopts = iset[l:r]
-        iiter = (s for s in iopts if s[0] <= other[1] and s[1] >= other[0])
-        for o in iiter: yield o
+        if include_left and include_right:
+            iiter = (s for s in iopts if s[0] <= other[1] and s[1] >= other[0])
+        elif include_left and not include_right:
+            iiter = (s for s in iopts if s[0] <= other[1] and s[1] > other[0])
+        elif not include_left and include_right:
+            iiter = (s for s in iopts if s[0] < other[1] and s[1] >= other[0])
+        else:
+            iiter = (s for s in iopts if s[0] < other[1] and s[1] > other[0])
+
+        for o in iiter:
+            yield o
 
     def closest(self, other):
         iset = self._iset
